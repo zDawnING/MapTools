@@ -1,0 +1,100 @@
+<html>
+    <head>
+        <title>Itowns - Orthographic Camera Example</title>
+        
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="css/example.css">
+        <link rel="stylesheet" type="text/css" href="css/loading_screen.css">
+        <style>
+            #eventTip{
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 160px;
+                height: 80px;
+
+                background: rgb(94, 92, 92);
+                color: #ffffff;
+                font-size: 14px;
+            }
+        </style>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div id="viewerDiv"></div>
+        <div id="eventTip">Please double click to select point</div>
+        <script src="itowns/itowns.js"></script>
+        <script src="tools/measure.js"></script>
+        <script type="text/javascript">
+            // # Orthographic viewer
+
+            var position = { longitude: 121.805851, latitude: 31.150229, altitude: 5000 };
+            const coordinates = new itowns.Coordinates('EPSG:4326', position.longitude, position.latitude, position.altitude);
+
+            // Define geographic extent: CRS, min/max X, min/max Y
+            var extent = new itowns.Extent(
+                'EPSG:3857',
+                -20037508.342789244, 20037508.342789244,
+                -20037508.342789244, 20037508.342789244);
+
+            // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
+            var viewerDiv = document.getElementById('viewerDiv');
+
+            // Instanciate PlanarView
+            // By default itowns' tiles geometry have a "skirt" (ie they have a height),
+            // but in case of orthographic we don't need this feature, so disable it
+            var view = new itowns.PlanarView(viewerDiv, extent, { disableSkirt: true, maxSubdivisionLevel: 20 });
+
+            // eslint-disable-next-line no-new
+            var globeControls = new itowns.PlanarControls(view, {
+                // We do not want the user to zoom out too much
+                maxAltitude: 40000000,
+                // We want to keep the rotation disabled, to only have a view from the top
+                enableRotation: true,
+                // Faster zoom in/out speed
+                zoomInFactor: 0,
+                zoomOutFactor: 0,
+                // Don't zoom too much on smart zoom
+                smartZoomHeightMax: 100000,
+            });
+            // globeControls.enabled = false;
+
+            // Turn in the right angle
+            itowns.CameraUtils.transformCameraToLookAtTarget(view, view.camera.camera3D, { tilt: 90, coord: coordinates, range: 3000 });
+            // setupLoadingScreen(viewerDiv, view);
+
+            // Add a TMS imagery source
+            var googleSource = new itowns.TMSSource({
+                isInverted: true,
+                // eslint-disable-next-line no-template-curly-in-string
+                extent,
+                format: 'image/png',
+                url: 'http://www.google.cn/maps/vt?lyrs=s@716,h@245000000&gl=CN&x=${x}&y=${y}&z=${z}',
+                attribution: {
+                    name: 'GoogleMap',
+                    url: 'http://www.google.cn',
+                },
+                tileMatrixSet: 'PM',
+                projection: 'EPSG:3857',
+            });
+
+            // Add a TMS imagery layer
+            var googleLayer = new itowns.ColorLayer('Google', {
+                updateStrategy: {
+                    type: itowns.STRATEGY_DICHOTOMY,
+                },
+                source: googleSource,
+            });
+
+            view.addLayer(googleLayer);
+
+            var mapMeasureTools = new MapPointToPointMeasure();
+            mapMeasureTools.init(view, googleLayer);
+
+            // Request redraw
+            view.notifyChange();
+
+            
+        </script>
+    </body>
+</html>
