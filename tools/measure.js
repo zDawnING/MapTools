@@ -1,6 +1,3 @@
-/**
- * 点与点之间的测量工具
- */
 function MapPointToPointMeasure() {
 
     this.enabled = false;
@@ -31,6 +28,7 @@ function MapPointToPointMeasure() {
         this.view.scene.autoUpdate = true;
 
         this.raycaster = new itowns.THREE.Raycaster();
+        this.distanceMsgObj = document.getElementById('distanceResult');
 
         this.enabled = true;
         this.startVec3 = new itowns.THREE.Vector3();
@@ -107,6 +105,9 @@ function handleClickPoint(event) {
             // compute distance
             let distance = computeDistance(this.startVec3, this.endVec3);
             console.log('TCL: handleClickPoint -> distance', distance);
+            if(this.distanceMsgObj){
+                this.distanceMsgObj.innerHTML = distance;
+            }
         }else{
             this.startPointObj.position.copy(selectPoint);
             this.startVec3.copy(selectPoint);
