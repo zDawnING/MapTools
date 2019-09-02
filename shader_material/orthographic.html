@@ -3,9 +3,9 @@
         <title>Itowns - Orthographic Camera Example</title>
         
         <meta charset="UTF-8">
-        <link rel="stylesheet" type="text/css" href="css/example.css">
-        <link rel="stylesheet" type="text/css" href="css/loading_screen.css">
-        <style>
+        <link rel="stylesheet" type="text/css" href="../css/example.css">
+        <link rel="stylesheet" type="text/css" href="../css/loading_screen.css">
+        <!-- <style>
             #eventTip{
                 position: absolute;
                 top: 0;
@@ -18,17 +18,17 @@
                 font-size: 14px;
                 text-align: center;
             }
-        </style>
+        </style> -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
         <div id="viewerDiv"></div>
-        <div id="eventTip">
+        <!-- <div id="eventTip">
             <p>Please double click to select point.</p>
             <p>distance: <span id="distanceResult"></span></p>
-        </div>
-        <script src="itowns/itowns.js"></script>
-        <script src="tools//mesure_fix_v1.js"></script>
+        </div> -->
+        <script src="../itowns/itowns.js"></script>
+        <!-- <script src="../tools/measure.js"></script> -->
         <script type="text/javascript">
             // # Orthographic viewer
 
@@ -93,12 +93,72 @@
 
             view.addLayer(googleLayer);
 
-            var mapMeasureTools = new MapPointToPointMeasure();
-            mapMeasureTools.init(view, googleLayer);
+            // var mapMeasureTools = new MapPointToPointMeasure();
+            // mapMeasureTools.init(view, googleLayer);
 
             // Request redraw
             view.notifyChange();
 
+            view.scene.autoUpdate = true;
+
+            // create geometry
+            var boxGeometry = new itowns.THREE.BoxBufferGeometry(100, 100, 100);
+
+            // color red
+            var shaderMaterial = new itowns.THREE.ShaderMaterial({
+                vertexShader: `
+                precision highp float;
+                void main(){
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+                `,
+                fragmentShader:`
+                precision highp float;
+                void main(){
+                    gl_FragColor = vec4(vec3(1.0, 0.0, 0.0), 1.0);
+                }
+                `
+            })
+
+            // color green
+            var rawShaderMaterial = new itowns.THREE.RawShaderMaterial({
+                vertexShader: `
+                precision highp float;
+
+                attribute vec3 position;
+                uniform mat4 modelViewMatrix;
+                uniform mat4 projectionMatrix;
+
+                void main(){
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+                `,
+                fragmentShader:`
+                precision highp float;
+                void main(){
+                    gl_FragColor = vec4(vec3(0.0, 1.0, 0.0), 1.0);
+                }
+                `
+            })
+
+            // use normal material
+            var normalMaterial = new itowns.THREE.MeshNormalMaterial();  
+
+            // normal material
+            var boxMesh1 = new itowns.THREE.Mesh(boxGeometry, normalMaterial);
+            boxMesh1.position.set(13559376.473516721, 3652254.0344332634, 100);
+
+            // shader material
+            var boxMesh2 = new itowns.THREE.Mesh(boxGeometry, shaderMaterial);
+            boxMesh2.position.set(13559176.473516721, 3652254.0344332634, 100);
+
+            // raw shader material
+            var boxMesh3 = new itowns.THREE.Mesh(boxGeometry, rawShaderMaterial);
+            boxMesh3.position.set(13559000.473516721, 3652254.0344332634, 100);
+
+            view.scene.add(boxMesh1);
+            view.scene.add(boxMesh2);
+            view.scene.add(boxMesh3);
             
         </script>
     </body>
